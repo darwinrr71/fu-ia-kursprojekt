@@ -1,7 +1,7 @@
 import { Response } from "express";
 import { AppError, Result } from "./result";
 
-const STATUS: Record<AppError["code"], number> = {
+const status: Record<AppError["code"], number> = {
   invalid_input: 400,
   forbidden: 403,
   not_found: 404,
@@ -10,7 +10,7 @@ const STATUS: Record<AppError["code"], number> = {
 
 // Alla felsvar har formen { error: { code, message } }.
 export function sendError(res: Response, error: AppError): void {
-  res.status(STATUS[error.code]).json({ error });
+  res.status(status[error.code]).json({ error });
 }
 
 export function sendResult<T>(res: Response, result: Result<T>, okStatus = 200): void {
