@@ -1,0 +1,30 @@
+
+# Tillåt läsning av Git-status och ändringar.
+prefix_rule(
+    pattern = ["git", "status"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["git", "diff"],
+    decision = "allow",
+)
+
+# Kräv godkännande innan en commit skapas.
+prefix_rule(
+    pattern = ["git", "commit"],
+    decision = "prompt",
+)
+
+# Blockera publicering och destruktiv återställning.
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "forbidden",
+    justification = "Publicering kräver ett separat godkänt arbetsflöde.",
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "Använd en icke-destruktiv metod för att hantera ändringar.",
+)
