@@ -28,3 +28,33 @@ prefix_rule(
     decision = "forbidden",
     justification = "Använd en icke-destruktiv metod för att hantera ändringar.",
 )
+
+# Tillåt automatiska kvalitetskontroller.
+prefix_rule(
+    pattern = ["npm", "test"],
+    decision = "allow",
+)
+
+prefix_rule(
+    pattern = ["npm", "run", "typecheck"],
+    decision = "allow",
+)
+
+# Kräv godkännande innan filer läggs till i Git.
+prefix_rule(
+    pattern = ["git", "add"],
+    decision = "prompt",
+)
+
+# Blockera direkta borttagningskommandon.
+prefix_rule(
+    pattern = ["rm"],
+    decision = "forbidden",
+    justification = "Borttagning kräver särskild granskning.",
+)
+
+prefix_rule(
+    pattern = ["Remove-Item"],
+    decision = "forbidden",
+    justification = "Borttagning kräver särskild granskning.",
+)
