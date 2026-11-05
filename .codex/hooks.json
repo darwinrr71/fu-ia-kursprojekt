@@ -1,0 +1,67 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node --import=tsx .codex/hooks/session-start.ts",
+            "timeout": 10,
+            "statusMessage": "Läser senaste sessionsloggen vid start av Codex"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node --import=tsx .codex/hooks/session-end.ts",
+            "timeout": 3,
+            "statusMessage": "Sparar sessionsstatus"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node --import=tsx .codex/hooks/pre-tool-use.ts",
+            "timeout": 10,
+            "statusMessage": "Skyddar befintliga tester"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node --import=tsx .codex/hooks/post-tool-use.ts",
+            "timeout": 10,
+            "statusMessage": "Loggar kvalitetskontroller"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node --import=tsx .codex/hooks/stop.ts",
+            "timeout": 10,
+            "statusMessage": "Kontrollerar återstående verifieringar"
+          }
+        ]
+      }
+    ]
+  }
+}
