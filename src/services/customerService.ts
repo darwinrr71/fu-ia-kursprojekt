@@ -5,7 +5,8 @@ export type Customer = { id: number; uuid: string; name: string; email: string }
 
 export type OrderSummary = { id: number; status: string; createdAt: string };
 
-export type OrderListOptions = { status?: string };
+export type OrderListOptions = { page?: number; status?: string };
+export const ordersPerPage = 10;
 
 export async function createCustomer(input: {
   name?: unknown;
@@ -36,13 +37,17 @@ export async function listOrdersForCustomer(
   customerId: number,
   options: OrderListOptions = {},
 ): Promise<OrderSummary[]> {
+  const limit = options.page === undefined ? null : ordersPerPage;
+  const offset = options.page === undefined ? null : (options.page - 1) * ordersPerPage;
   const res = await db.query(
     `SELECT id, status, created_at AS "createdAt"
        FROM orders
       WHERE customer_id = $1
         AND ($2::text IS NULL OR status = $2)
-      ORDER BY created_at DESC`,
-    [customerId, options.status ?? null],
+      ORDER BY created_at DESC, id DESC
+      LIMIT $3
+     OFFSET $4`,
+    [customerId, options.status ?? null, limit, offset],
   );
   return res.rows;
 }
