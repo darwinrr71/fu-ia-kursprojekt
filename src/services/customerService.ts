@@ -5,6 +5,8 @@ export type Customer = { id: number; uuid: string; name: string; email: string }
 
 export type OrderSummary = { id: number; status: string; createdAt: string };
 
+export type OrderListOptions = { status?: string };
+
 export async function createCustomer(input: {
   name?: unknown;
   email?: unknown;
@@ -30,11 +32,17 @@ export async function getCustomer(id: number): Promise<Result<Customer>> {
   return ok(res.rows[0]);
 }
 
-export async function listOrdersForCustomer(customerId: number): Promise<OrderSummary[]> {
+export async function listOrdersForCustomer(
+  customerId: number,
+  options: OrderListOptions = {},
+): Promise<OrderSummary[]> {
   const res = await db.query(
     `SELECT id, status, created_at AS "createdAt"
-       FROM orders WHERE customer_id = $1 ORDER BY created_at DESC`,
-    [customerId],
+       FROM orders
+      WHERE customer_id = $1
+        AND ($2::text IS NULL OR status = $2)
+      ORDER BY created_at DESC`,
+    [customerId, options.status ?? null],
   );
   return res.rows;
 }

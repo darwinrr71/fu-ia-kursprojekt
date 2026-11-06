@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { AuthedRequest, requireCustomer } from "../auth";
-import { sendResult } from "../http";
+import { sendError, sendResult } from "../http";
 import { createCustomer, getCustomer, listOrdersForCustomer } from "../services/customerService";
 
 export const customers = Router();
@@ -19,6 +19,16 @@ customers.get("/customers/me", requireCustomer, async (req, res) => {
 
 // Den inloggade kundens beställningar.
 customers.get("/customers/me/orders", requireCustomer, async (req, res) => {
-  const orders = await listOrdersForCustomer((req as AuthedRequest).customerId);
+  const statusParam = req.query.status;
+  if (statusParam === "" || (statusParam !== undefined && typeof statusParam !== "string")) {
+    sendError(res, {
+      code: "invalid_input",
+      message: "status måste anges exakt en gång och får inte vara tom.",
+    });
+    return;
+  }
+
+  const status = typeof statusParam === "string" ? statusParam : undefined;
+  const orders = await listOrdersForCustomer((req as AuthedRequest).customerId, { status });
   res.json(orders);
 });

@@ -54,4 +54,37 @@ describe("GET /customers/me/orders", () => {
     expect(res.status).toBe(200);
     expect(res.body.map((o: { id: number }) => o.id)).toEqual([1047, 1041]);
   });
+
+  it("filtrerar på status och listar bara den inloggade kundens beställningar", async () => {
+    const res = await request(app)
+      .get("/customers/me/orders?status=paid")
+      .set("X-Customer-Id", "1");
+    expect(res.status).toBe(200);
+    expect(res.body.map((o: { id: number }) => o.id)).toEqual([1042]);
+    expect(res.body.every((o: { status: string }) => o.status === "paid")).toBe(true);
+  });
+
+  it("returnerar 400 när statusparametern är tom", async () => {
+    const res = await request(app).get("/customers/me/orders?status=").set("X-Customer-Id", "1");
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      error: {
+        code: "invalid_input",
+        message: expect.stringMatching(/\S/),
+      },
+    });
+  });
+
+  it("returnerar 400 när statusparametern är upprepad", async () => {
+    const res = await request(app)
+      .get("/customers/me/orders?status=paid&status=shipped")
+      .set("X-Customer-Id", "1");
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({
+      error: {
+        code: "invalid_input",
+        message: expect.stringMatching(/\S/),
+      },
+    });
+  });
 });
