@@ -7,10 +7,13 @@ Alla anrop utom `POST /customers` och `/health` kräver headern `X-Customer-Id` 
 | `GET /health` | Kontroll att API:t kör. | 200 |
 | `POST /customers` | Registrera en kund. Body: `{ name, email }`. | 201, 400 |
 | `GET /customers/me` | Den inloggade kunden. | 200, 401, 404 |
-| `GET /customers/me/orders` | Den inloggade kundens beställningar, nyast först. | 200, 401 |
+| `GET /customers/me/orders` | Den inloggade kundens beställningar, nyast först. Valfria queryparametrar: `page` och `status`. | 200, 400, 401 |
 | `POST /orders` | Lägg en beställning. Body: `{ lines: [{ product, quantity, unitPrice }], discountCode? }`. | 201, 400, 401 |
 | `GET /orders/:id` | En egen beställning med rader. | 200, 400, 401, 403, 404 |
 | `GET /orders/:id/price` | Pris för en egen beställning: `{ net, vat, total }`. Räknas av den äldre modulen. | 200, 400, 401, 403, 404 |
+
+Det fullständiga kontraktet för sidindelning, statusfilter och valideringsfel finns i
+`docs/api-sidindelning.md`.
 
 ## Den äldre modulen
 
