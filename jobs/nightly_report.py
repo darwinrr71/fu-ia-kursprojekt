@@ -6,7 +6,10 @@ from price_calc import calc_price, conn
 
 def skapa_rapport(dag, anslutning, prisfunktion):
     cur = anslutning.cursor()
-    cur.execute("select id from orders where status = 'paid' and created_at::date = '%s'" % dag)
+    cur.execute(
+        "select id from orders where status = 'paid' and created_at::date = %s",
+        (dag,),
+    )
     summa = 0
     antal = 0
     for (oid,) in cur.fetchall():

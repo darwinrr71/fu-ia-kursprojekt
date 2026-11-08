@@ -76,6 +76,10 @@ def test_calc_price_sums_lines_and_truncates_vat(monkeypatch):
     assert price.net == Decimal("10.99")
     assert price.vat == Decimal("2.74")
     assert price.total == Decimal("13.73")
+    assert cursor.queries[1] == (
+        "select quantity, unit_price from order_lines where order_id = %s",
+        (42,),
+    )
 
 
 def test_calc_price_applies_discount_before_truncation(monkeypatch):
@@ -126,9 +130,11 @@ def test_nightly_report_sums_paid_orders_and_formats_output(monkeypatch, capsys)
     class ReportCursor:
         def __init__(self):
             self.query = ""
+            self.params = None
 
-        def execute(self, query):
+        def execute(self, query, params=None):
             self.query = query
+            self.params = params
 
         def fetchall(self):
             return [(11,), (12,)]
@@ -144,10 +150,8 @@ def test_nightly_report_sums_paid_orders_and_formats_output(monkeypatch, capsys)
 
     runpy.run_path(str(NIGHTLY_REPORT_PATH), run_name="__main__")
 
-    assert cursor.query == (
-        "select id from orders where status = 'paid' "
-        "and created_at::date = '2026-11-08'"
-    )
+    assert cursor.query == "select id from orders where status = 'paid' and created_at::date = %s"
+    assert cursor.params == ("2026-11-08",)
     assert capsys.readouterr().out == "2026-11-08: 2 betalda ordrar, totalt 30.75 kr\n"
 
 
@@ -160,9 +164,11 @@ def test_nightly_report_uses_today_when_date_is_missing(monkeypatch, capsys):
     class ReportCursor:
         def __init__(self):
             self.query = ""
+            self.params = None
 
-        def execute(self, query):
+        def execute(self, query, params=None):
             self.query = query
+            self.params = params
 
         def fetchall(self):
             return []
@@ -178,8 +184,6 @@ def test_nightly_report_uses_today_when_date_is_missing(monkeypatch, capsys):
 
     runpy.run_path(str(NIGHTLY_REPORT_PATH), run_name="__main__")
 
-    assert cursor.query == (
-        "select id from orders where status = 'paid' "
-        "and created_at::date = '2026-11-09'"
-    )
+    assert cursor.query == "select id from orders where status = 'paid' and created_at::date = %s"
+    assert cursor.params == ("2026-11-09",)
     assert capsys.readouterr().out == "2026-11-09: 0 betalda ordrar, totalt 0 kr\n"

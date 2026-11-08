@@ -86,9 +86,12 @@ Hela API-testsviten kördes inte om. Den återställer `butik_test`, medan denna
 etapp uttryckligen förbjuder databasändringar. Senaste tidigare baslinje var 35
 av 35 godkända tester, men den räknas inte som en ny körning i denna etapp.
 
-## Verifierade tekniska risker
+## Tekniska risker och genomförda rättelser
 
-- SQL byggs med stränginterpolering i båda Python-filerna.
+- SQL-frågorna i `price_calc.py` parameteriserades i refaktorering 2
+  (`324d518`).
+- Datumfrågan i `nightly_report.py` har därefter parameteriserats med samma
+  rapportbeteende som tidigare.
 - `price_calc.py` öppnar en global databasanslutning redan vid import.
 - Nattjobbet gör en prisberäkning med flera frågor per order, ett N+1-flöde.
 - Rabattens giltighetsdatum ignoreras.
@@ -98,7 +101,8 @@ av 35 godkända tester, men den räknas inte som en ny körning i denna etapp.
 - Ogiltig JSON från en process som avslutas utan fel saknar kontrollerad
   felhantering.
 
-Riskerna dokumenteras men ändras inte i karakteriseringsetappen.
+Kvarstående risker är dokumenterade men ändras inte i dessa avslutande
+rättelser.
 
 ## Planerade refaktoreringar
 
