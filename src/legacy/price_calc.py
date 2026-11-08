@@ -40,23 +40,34 @@ def _berakna_pris(rader, rabattprocent=_INGEN_RABATT):
     return Pris(net, vat, net + vat)
 
 
-def calc_price(order_id):
-    cur = conn.cursor()
-    cur.execute("select discount_code from orders where id = %s" % order_id)
+def _hamta_order(cur, order_id):
+    cur.execute("select discount_code from orders where id = %s", (order_id,))
+    return cur.fetchone()
+
+
+def _hamta_orderrader(cur, order_id):
+    cur.execute("select quantity, unit_price from order_lines where order_id = %s", (order_id,))
+    return cur.fetchall()
+
+
+def _hamta_rabattprocent(cur, kod):
+    if not kod:
+        return _INGEN_RABATT
+
+    cur.execute("select percent from discounts where code = %s", (kod,))
     rad = cur.fetchone()
+    return rad[0] if rad else _INGEN_RABATT
+
+
+def calc_price(order_id, anslutning=None):
+    aktiv_anslutning = conn if anslutning is None else anslutning
+    cur = aktiv_anslutning.cursor()
+    rad = _hamta_order(cur, order_id)
     if rad == None:
         return None
-    kod = rad[0]
 
-    cur.execute("select quantity, unit_price from order_lines where order_id = %s" % order_id)
-    rader = cur.fetchall()
-
-    rabattprocent = _INGEN_RABATT
-    if kod:
-        cur.execute("select percent from discounts where code = '%s'" % kod)
-        r = cur.fetchone()
-        if r:
-            rabattprocent = r[0]
+    rader = _hamta_orderrader(cur, order_id)
+    rabattprocent = _hamta_rabattprocent(cur, rad[0])
 
     pris = _berakna_pris(rader, rabattprocent)
 

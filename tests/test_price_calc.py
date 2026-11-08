@@ -22,9 +22,9 @@ class PriceCursor:
         self.queries = []
         self.last_query = ""
 
-    def execute(self, query):
+    def execute(self, query, params=None):
         self.last_query = query
-        self.queries.append(query)
+        self.queries.append((query, params))
 
     def fetchone(self):
         if "from orders" in self.last_query:
@@ -90,7 +90,10 @@ def test_calc_price_applies_discount_before_truncation(monkeypatch):
     assert price.net == Decimal("16.99")
     assert price.vat == Decimal("4.24")
     assert price.total == Decimal("21.23")
-    assert cursor.queries[-1] == "select percent from discounts where code = 'GAMMAL15'"
+    assert cursor.queries[-1] == (
+        "select percent from discounts where code = %s",
+        ("GAMMAL15",),
+    )
 
 
 def test_calc_price_ignores_unknown_discount_code(monkeypatch):
@@ -113,7 +116,9 @@ def test_calc_price_returns_none_when_order_is_missing(monkeypatch):
     module = load_price_calc(monkeypatch, cursor)
 
     assert module.calc_price(9999) is None
-    assert cursor.queries == ["select discount_code from orders where id = 9999"]
+    assert cursor.queries == [
+        ("select discount_code from orders where id = %s", (9999,))
+    ]
 
 
 def test_nightly_report_sums_paid_orders_and_formats_output(monkeypatch, capsys):
