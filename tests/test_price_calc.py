@@ -48,6 +48,7 @@ class FakeConnection:
 def load_price_calc(monkeypatch, cursor):
     monkeypatch.setattr(psycopg, "connect", lambda *_args, **_kwargs: FakeConnection(cursor))
     spec = importlib.util.spec_from_file_location("characterized_price_calc", PRICE_CALC_PATH)
+    assert spec is not None
     module = importlib.util.module_from_spec(spec)
     assert spec.loader is not None
     spec.loader.exec_module(module)

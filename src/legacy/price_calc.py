@@ -5,12 +5,14 @@
 import os, sys, json, datetime
 from decimal import Decimal
 import psycopg
+from typing import cast
 
 DB = os.environ.get("DATABASE_URL", "postgresql://postgres:postgres@localhost:5432/butik")
 conn = psycopg.connect(DB, autocommit=True)
 
 MOMS = 25
 LOGG = os.path.join(os.path.dirname(__file__), "price_calc.log")
+_INGEN_RABATT = object()
 
 
 class Pris:
@@ -25,6 +27,19 @@ def _kapa(x):
     return Decimal(int(x * 100)) / 100
 
 
+def _berakna_pris(rader, rabattprocent=_INGEN_RABATT):
+    summa = Decimal(0)
+    for q, p in rader:
+        summa = summa + q * p
+
+    if rabattprocent is not _INGEN_RABATT:
+        summa = summa - summa * cast(Decimal, rabattprocent) / 100
+
+    net = _kapa(summa)
+    vat = _kapa(net * MOMS / 100)
+    return Pris(net, vat, net + vat)
+
+
 def calc_price(order_id):
     cur = conn.cursor()
     cur.execute("select discount_code from orders where id = %s" % order_id)
@@ -34,28 +49,25 @@ def calc_price(order_id):
     kod = rad[0]
 
     cur.execute("select quantity, unit_price from order_lines where order_id = %s" % order_id)
-    summa = Decimal(0)
-    for q, p in cur.fetchall():
-        summa = summa + q * p
+    rader = cur.fetchall()
 
+    rabattprocent = _INGEN_RABATT
     if kod:
         cur.execute("select percent from discounts where code = '%s'" % kod)
         r = cur.fetchone()
         if r:
-            summa = summa - summa * r[0] / 100
+            rabattprocent = r[0]
 
-    net = _kapa(summa)
-    vat = _kapa(net * MOMS / 100)
-    total = net + vat
+    pris = _berakna_pris(rader, rabattprocent)
 
     try:
         f = open(LOGG, "a")
-        f.write("%s %s %s\n" % (datetime.datetime.now().isoformat(), order_id, total))
+        f.write("%s %s %s\n" % (datetime.datetime.now().isoformat(), order_id, pris.total))
         f.close()
     except:
         pass
 
-    return Pris(net, vat, total)
+    return pris
 
 
 if __name__ == "__main__":
