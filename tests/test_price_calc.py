@@ -1,4 +1,5 @@
 from decimal import Decimal
+import datetime
 import importlib.util
 from pathlib import Path
 import runpy
@@ -148,3 +149,37 @@ def test_nightly_report_sums_paid_orders_and_formats_output(monkeypatch, capsys)
         "and created_at::date = '2026-11-08'"
     )
     assert capsys.readouterr().out == "2026-11-08: 2 betalda ordrar, totalt 30.75 kr\n"
+
+
+def test_nightly_report_uses_today_when_date_is_missing(monkeypatch, capsys):
+    class FixedDate(datetime.date):
+        @classmethod
+        def today(cls):
+            return cls(2026, 11, 9)
+
+    class ReportCursor:
+        def __init__(self):
+            self.query = ""
+
+        def execute(self, query):
+            self.query = query
+
+        def fetchall(self):
+            return []
+
+    cursor = ReportCursor()
+    fake_module = SimpleNamespace(
+        conn=FakeConnection(cursor),
+        calc_price=lambda _order_id: None,
+    )
+    monkeypatch.setitem(sys.modules, "price_calc", fake_module)
+    monkeypatch.setattr(sys, "argv", [str(NIGHTLY_REPORT_PATH)])
+    monkeypatch.setattr(datetime, "date", FixedDate)
+
+    runpy.run_path(str(NIGHTLY_REPORT_PATH), run_name="__main__")
+
+    assert cursor.query == (
+        "select id from orders where status = 'paid' "
+        "and created_at::date = '2026-11-09'"
+    )
+    assert capsys.readouterr().out == "2026-11-09: 0 betalda ordrar, totalt 0 kr\n"
