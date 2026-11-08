@@ -17,7 +17,7 @@ Det fullständiga kontraktet för sidindelning, statusfilter och valideringsfel 
 
 ## Den äldre modulen
 
-`src/legacy/price_calc.py` räknar pris, rabatt och moms för en beställning. Den är skriven i Python, saknar tester och dokumentation och anropas från två ställen: API:t (via `src/pricing/legacyPrice.ts`) och den nattliga rapporten `jobs/nightly_report.py`.
+`src/legacy/price_calc.py` räknar pris, rabatt och moms för en beställning. Den är skriven i Python och anropas från två ställen: API:t (via `src/pricing/legacyPrice.ts`) och den nattliga rapporten `jobs/nightly_report.py`. Faktiskt beteende och moderniseringsplan finns i `docs/modernisering-prisberakning.md`.
 
 Den går att köra direkt:
 

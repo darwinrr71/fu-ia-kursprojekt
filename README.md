@@ -5,7 +5,7 @@
 Projektet innehåller två delar med olika ålder och kvalitet:
 
 - **REST-API:t** för kunder och beställningar, i TypeScript med Express och PostgreSQL. Det har tester och följer kodstandarden i `docs/standard.md` någorlunda.
-- **Den äldre prisberäkningen** i `src/legacy/price_calc.py`, i Python. Den är odokumenterad, saknar tester och har okända antaganden. Den är den del som moderniseras i kursprojektet.
+- **Den äldre prisberäkningen** i `src/legacy/price_calc.py`, i Python. Den är kartlagd i `docs/modernisering-prisberakning.md` och täcks av karakteriseringstester. Den är den del som moderniseras i kursprojektet.
 
 ## Kom igång
 
@@ -17,7 +17,7 @@ pip install -r requirements.txt     # gärna i en virtuell miljö
 cp .env.example .env
 npm run db:up                       # startar PostgreSQL i Docker
 npm run db:reset                    # skapar tabeller och testdata
-npm test                            # ska ge 16 gröna tester
+npm test                            # kör API-testerna
 npm start                           # API:t på http://localhost:3000
 ```
 
@@ -35,7 +35,7 @@ curl http://localhost:3000/orders/1042/price -H "X-Customer-Id: 1"
 | Kommando | Vad det gör |
 |---|---|
 | `npm test` | Kör API-testerna mot testdatabasen. |
-| `npm run test:legacy` | Kör Python-testerna (finns inga än). |
+| `npm run test:legacy` | Kör karakteriseringstesterna för den äldre Python-koden. |
 | `npm run lint` | ESLint med grundkonfiguration. |
 | `npm run typecheck` | TypeScript utan att bygga. |
 | `npm run format` | Formaterar koden med Prettier. |
@@ -52,7 +52,7 @@ src/
   legacy/price_calc.py     den äldre prisberäkningen
 jobs/nightly_report.py     nattlig rapport som också använder price_calc
 db/                        schema och testdata
-tests/                     API-tester
+tests/                     API- och legacytester
 docs/
   standard.md              teamets kodstandard, i ord
   api.md                   endpoints
